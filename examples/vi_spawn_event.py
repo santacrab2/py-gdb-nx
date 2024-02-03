@@ -16,27 +16,27 @@ def is_shiny(pid: int, sidtid: int):
 
 def overworld_spawn_event(gdbprocess: GdbProcess, bkpt: Breakpoint):
     """Function to be called when a pokemon is generated"""
-    pokemon_addr = gdbprocess.read_register("sp") + 0x18
-    pid = gdbprocess.read_int(pokemon_addr + 0x8)
-    tidsid = gdbprocess.read_int(pokemon_addr + 0x10)
     try:
-        species = Species(gdbprocess.read_int(pokemon_addr + 0x18, "w"))
-    except Exception as e:
-        species = gdbprocess.read_int(pokemon_addr + 0x18, "w")
+        pokemon_addr = gdbprocess.read_register("sp") + 0x18
     
-    if(is_shiny(pid,tidsid)):
-        print(
-            f"{pokemon_addr=:X}",
-            f"{species=} {form=}",
-            f"{ec=:X} {tidsid=:X} {pid=:X} {is_shiny(pid, tidsid)=}",
-            sep="\n",
-            end="\n\n",
-        )
-        wait = input("press enter to continue")
-    else:
-        print(
-            f"{species=}",
-            f"shiny = false")
+        species = Species(gdbprocess.read_int(pokemon_addr + 0x18, "w"))
+    
+        pid = gdbprocess.read_int(pokemon_addr + 0x8)
+        tidsid = gdbprocess.read_int(pokemon_addr + 0x10)
+        if(is_shiny(pid,tidsid)):
+            print(
+                f"{species=}",
+                f"shiny = true",
+                sep="\n",
+                end="\n\n",
+            )
+            wait = input("press enter to continue")
+        else:
+            print(
+                f"{species=}",
+                f"shiny = false")
+    except Exception as e:
+        return
 
 
 # IP of switch
