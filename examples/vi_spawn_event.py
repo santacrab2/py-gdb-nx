@@ -18,9 +18,10 @@ def overworld_spawn_event(gdbprocess: GdbProcess, bkpt: Breakpoint):
     """Function to be called when a pokemon is generated"""
     try:
         pokemon_addr = gdbprocess.read_register("sp") + 0x18
-    
-        species = Species(gdbprocess.read_int(pokemon_addr + 0x18, "w"))
-    
+        try:
+            species = Species(gdbprocess.read_int(pokemon_addr + 0x18, "h"))
+        except Exception:
+            species = gdbprocess.read_int(pokemon_addr + 0x18, "h")
         pid = gdbprocess.read_int(pokemon_addr + 0x8)
         tidsid = gdbprocess.read_int(pokemon_addr + 0x10)
         if(is_shiny(pid,tidsid)):
