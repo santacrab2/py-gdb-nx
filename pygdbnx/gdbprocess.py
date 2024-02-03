@@ -204,7 +204,7 @@ class GdbProcess(pygdbmi.gdbcontroller.GdbController):
         return int(self.filter_response(
             self.wait_for_response(),
             "console"
-            )[0]['payload'].split("0x")[-1][:-2].replace(":",""),16)
+            )[0]['payload'].split("0x")[-1][:-1].replace(":",""),16)
 
     def read_bytes(
         self,
