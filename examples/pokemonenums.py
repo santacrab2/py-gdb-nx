@@ -1015,7 +1015,7 @@ class Species(Enum):
     Quaquaval = 914
     Lechonk = 915
     Oinkologne = 916
-        Tarountula=918
+    Tarountula=918
     Spidops=919
     Nymble=920
     Lokix=921
