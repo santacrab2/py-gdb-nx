@@ -20,8 +20,6 @@ def overworld_spawn_event(gdbprocess: GdbProcess, bkpt: Breakpoint):
     pokemon_addr = gdbprocess.read_register("sp") + 0x18
 
     species = Species(gdbprocess.read_int(pokemon_addr + 0x18, "h"))
-    if(species==Species.Koraidon or Species.Miraidon):
-        return
     pid = gdbprocess.read_int(pokemon_addr + 0x8)
     tidsid = gdbprocess.read_int(pokemon_addr + 0x10)
     if(is_shiny(pid,tidsid)):
