@@ -394,7 +394,7 @@ class GdbProcess(pygdbmi.gdbcontroller.GdbController):
     def write_register(
         self,
         register: str,
-        value: Union[int, float],
+        value: int,
         type_string: str = "int",
     ):
         """
@@ -405,7 +405,7 @@ class GdbProcess(pygdbmi.gdbcontroller.GdbController):
             value (Union[int, float]): Value to write to register
             type_string (str): C type string to use when writing to register. Defaults to "int"
         """
-        self.write(f"set ${register} = ({type_string}){value}")
+        self.write(f"set ${register}={value}")
 
     def add_breakpoint(
         self,
@@ -429,7 +429,7 @@ class GdbProcess(pygdbmi.gdbcontroller.GdbController):
 
     def wait_for_break(
         self,
-        timeout: float = 60.0,
+        timeout: float = 604800.0,
     ):
         """
         Wait for and deal with a breakpoint being hit
@@ -437,36 +437,36 @@ class GdbProcess(pygdbmi.gdbcontroller.GdbController):
         Args:
             timeout (float, optional): Time in seconds to wait before timing out. Defaults to 60.0
         """
-        response = self.get_gdb_response(timeout_sec = timeout, raise_error_on_timeout = False)
-        if response is not None:
-            bkpt_hit: Breakpoint = None
-            for line in response:
-                if line['message'] == "breakpoint-modified":
-                    bkpt_info = line['payload']['bkpt']
-                    bkpt_no = int(bkpt_info['number'])
-                    bkpt_hit = self.active_breakpoints[bkpt_no - 1]
-                    break
-            if bkpt_hit is not None:
-                print(f"Breakpoint at \"{bkpt_hit.name}\" hit")
-                if isinstance(bkpt_hit, Watchpoint):
-                    access_address: int = None
-                    while access_address is None:
-                        for line in reversed(response):
-                            if "frame" in line['payload']:
-                                access_address = int(line['payload']['frame']['addr'],16)
-                                break
-                        if access_address is None:
-                            response = self.get_gdb_response(
-                                timeout_sec = timeout,
-                                raise_error_on_timeout = False
-                            )
-                    access_address = 0x7100000000 | (access_address - self.main_base)
-                    print(f"Access address: {access_address:X}")
-                self.clear_responses()
-                if bkpt_hit.on_break is not None:
-                    bkpt_hit.on_break(self, bkpt_hit)
-                self.resume_execution()
-                self.wait_for_break()
+        while True:
+            response = self.get_gdb_response(timeout_sec = timeout, raise_error_on_timeout = False)
+            if response is not None:
+                bkpt_hit: Breakpoint = None
+                for line in response:
+                    if line['message'] == "breakpoint-modified":
+                        bkpt_info = line['payload']['bkpt']
+                        bkpt_no = int(bkpt_info['number'])
+                        bkpt_hit = self.active_breakpoints[bkpt_no - 1]
+                        break
+                if bkpt_hit is not None:
+
+                    if isinstance(bkpt_hit, Watchpoint):
+                        access_address: int = None
+                        while access_address is None:
+                            for line in reversed(response):
+                                if "frame" in line['payload']:
+                                    access_address = int(line['payload']['frame']['addr'],16)
+                                    break
+                            if access_address is None:
+                                response = self.get_gdb_response(
+                                    timeout_sec = timeout,
+                                    raise_error_on_timeout = False
+                                )
+                        access_address = 0x7100000000 | (access_address - self.main_base)
+                        print(f"Access address: {access_address:X}")
+                    self.clear_responses()
+                    if bkpt_hit.on_break is not None:
+                        bkpt_hit.on_break(self, bkpt_hit)
+                    self.resume_execution()
 
     def wait_for_response(
         self,
